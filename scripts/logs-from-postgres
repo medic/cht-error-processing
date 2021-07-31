@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+psql -f feedback-doc-query.sql $1
+sed -i '1,2d' ./output/log.json
+sed -i '201d' ./output/log.json
+node ./index.js

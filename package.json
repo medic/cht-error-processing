@@ -1,0 +1,14 @@
+{
+  "name": "test_app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "Ethan",
+  "license": "ISC",
+  "dependencies": {
+    "elastic-apm-node": "^3.17.0"
+  }
+}

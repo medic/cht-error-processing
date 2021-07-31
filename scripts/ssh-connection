@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+ssh -p 33696 -L 63333:localhost:5432 ethanr@rdbms.dev.medicmobile.org
