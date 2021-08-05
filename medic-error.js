@@ -1,8 +1,8 @@
-class MedicError extends Error {
+class medicError extends Error {
     constructor(message, stack) {
       super(message);
       this.stack = stack;
     }
   }
 
-  module.exports = MedicError;
+  module.exports = medicError;

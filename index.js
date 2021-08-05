@@ -13,25 +13,18 @@ var apm = require('elastic-apm-node').start({
     // Set custom APM Server URL (default: http://localhost:8200)
     serverUrl: '',
   })
-var MedicError = require('./MedicError');
-let parseLog = require('./Parsing.js');
+  
+let parseLog = require('./parsing.js').parseLog;
 
 var lineReader = require('readline').createInterface({
-  input: require('fs').createReadStream('./output/log.json')
+  input: require('fs').createReadStream('./output/log.jsonl')
 });
 
 lineReader.on('line', function (line) {
   if(line){
-    let generalLogs = parseLog(JSON.parse(line));
+    const generalLogs = parseLog(JSON.parse(line));
     const metadata = generalLogs.metadata;
-    const errorLogs = generalLogs.errorLogs;
-    let parsedStack = {};
-    for (log in errorLogs){
-      parsedStack = errorLogs[log];
-      if (errorLogs[log]){
-        const errorForApm = new MedicError(parsedStack.message, parsedStack.stack);
-        apm.captureError( errorForApm, {labels: {date: metadata.time, version: metadata.version, url: metadata.url}});
-      }
-    }
+    const errorForAtm = generalLogs.createdError;
+    apm.captureError(errorForAtm, {labels: {date: metadata.time, version: metadata.version, url: metadata.url}});
   }
 });
