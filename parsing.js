@@ -1,56 +1,45 @@
 const medicError = require('./medic-error.js');
 
-function getMessage(error){
-    let message = ''
+function getMessage(infoSection){
+    let messageForError = ''
     let stackString = '';
-    try {
-        message = error.message;
-        stackString += message + '\n';
-        stackString += error.file + " AT LINE (" + error.line + ")";
-    } catch (error) {
+    const infoKeys = Object.keys(infoSection);
+    if (infoKeys.includes('cause')){
+        messageForError = infoSection.cause;
+        stackString += messageForError + '\n';
     }
-    return message ? {message: message, stack: stackString} : {message: "error format not recognized", stack: JSON.stringify(error)};
+    if (infoKeys.includes('message')){
+        if(!messageForError){
+            messageForError = infoSection.message;
+        }
+        stackString += infoSection.message + '\n';
+    }
+    if (infoKeys.includes('file') && infoKeys.includes('line')){
+        stackString += infoSection.file + " AT LINE (" + infoSection.line + ")";
+    }
+    return messageForError ? {message: messageForError, stack: stackString} : {message: JSON.stringify(infoSection), stack: JSON.stringify(infoSection)};
 }
 
 function parseLog(medicLog){
     let errorLog = {};
     let metadata = {};
-    try {
-        const infoSection = medicLog.info;
-        console.log(infoSection);
+    const logKeys = Object.keys(medicLog);
+    if(logKeys.includes('info')){
+        errorLog = getMessage(medicLog.info);
+    }
+    else{
+        errorLog = {message: 'no info section on log', stack: 'no info section on log'};
+    }
+    if(logKeys.includes('meta')){
         metadata = medicLog.meta;
-        if (infoSection){
-            errorLog = getMessage(infoSection);
-        }
-        else{
-            errorLog = {message: 'no info section on log', stack: 'no info section on log'};
-        }
-        if(!metadata){
-            metadata = {date:'N/A', version:'N/A', url:'N/A'}
-        }
-    } catch (error) {
     }
-    finally{
-        let createdError = new medicError(errorLog.message, errorLog.stack);
-        return {createdError, metadata};
+    else{
+        metadata = {date:'N/A', version:'N/A', url:'N/A'};
     }
+    let createdError = new medicError(errorLog.message, errorLog.stack);
+    return {createdError, metadata};
 }
 
 
+
 module.exports = {parseLog, getMessage};
-
-
-//Execption thrown in JavascriptInterface function: java.lang.SecurityException: Sending SMS message: uid 10096 no permission.SEND_SMS.
-//let vr = "Uncaught TypeError in https://pih-malawi.app.medicmobile.org/medic/_design/medic/_rewrite/js/inbox.js at line 3: Cannot read property 'scrollIntoView' of undefined"
-// function checkLevel(feedbackLog){
-//     if(feedbackLog.level == 'error'){
-//         if(typeof(feedbackLog.arguments) == 'string'){
-//             console.log('that!');
-//             return getMessage(feedbackLog.arguments.toString())
-//         }
-//         else{
-//             console.log(feedbackLog.arguments);
-//             return getMessage(feedbackLog.arguments[0].toString());
-//         }
-//     }
-// }

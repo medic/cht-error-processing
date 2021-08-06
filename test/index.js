@@ -16,13 +16,8 @@ describe('parsing.js', ()=>{
         })
         const getMessageMisformattedError = parsing.getMessage(misformattedError.info);
         it('should handle an unrecognized error input', ()=>{
-            expect(getMessageMisformattedError.message).to.equal("error format not recognized");
+            expect(getMessageMisformattedError.message).to.equal('"0"');
             expect(getMessageMisformattedError.stack).to.equal('"0"');
-        })
-        const getMessageUndefinedError = parsing.getMessage(misformattedError.imaginaryField);
-        it ('should handle an undefined input', ()=>{
-            expect(getMessageUndefinedError.message).to.equal("error format not recognized");
-            expect(getMessageUndefinedError.stack).to.equal(undefined);
         })
     });
 
