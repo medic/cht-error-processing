@@ -9,7 +9,8 @@
   "author": "Ethan",
   "license": "ISC",
   "dependencies": {
-    "elastic-apm-node": "^3.17.0"
+    "elastic-apm-node": "^3.17.0",
+    "pg": "^8.7.1"
   },
   "devDependencies": {
     "chai": "^4.3.4",

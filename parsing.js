@@ -37,7 +37,7 @@ function parseLog(medicLog){
         metadata = {date:'N/A', version:'N/A', url:'N/A'};
     }
     let createdError = new medicError(errorLog.message, errorLog.stack);
-    return {createdError, metadata};
+    return {errorForApm: createdError, metadata};
 }
 
 
