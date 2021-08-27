@@ -40,6 +40,4 @@ function parseLog(medicLog){
     return {errorForApm: createdError, metadata};
 }
 
-
-
 module.exports = {parseLog, getMessage};

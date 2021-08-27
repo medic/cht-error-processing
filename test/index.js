@@ -1,9 +1,25 @@
-const expect = require('chai').expect;
 const parsing = require('../parsing.js');
 const acceptableError = require('./acceptable-error.json');
 const misformattedError = require('./misformatted-error.json');
 const noInfoError = require('./no-info-error.json');
 const medicError = require('../medic-error.js');
+var chai = require('chai');
+var chaiHttp = require('chai-http');
+var expect = chai.expect;
+// Tell chai to use chai-http
+chai.use(chaiHttp);
+describe('ATM Connection', function() {
+    it("connects to APM", function() {
+        return chai.request('https://query.yahooapis.com')
+            .get("")
+            .then(function(res) {
+                expect(res).to.have.status(200);
+                expect(res.body).to.have.property('query');
+                expect(res.body.query).to.have.property('results');
+                expect(res.body.query.results).to.be.instanceof(Object);
+        });
+    });
+});
 
 describe('parsing.js', ()=>{
     describe('getMessage', ()=>{
