@@ -1,6 +1,11 @@
 const { parseLog } = require('./parsing');
 let log = require('loglevel');
 
+
+let getSeq = function(elasticsearch, deployment){
+  return '28-g1AAAAH9eJzLYWBg4MhgTmEQTM4vTc5ISXIwNDLXMwBCwxygFFMiQ5L8____szKYEzlygQLsycYmaQbmqdg04DEmSQFIJtmDTEpkwKfOAaQuHmojC9hGU2ODVBMjS1JtTACZVA81iR3i9jRjUzMzExJNymMBkgwNQApo2HyQaUxg05JSTc0MUwzIMm0BxLT9-EMDovYARO19hD_Mk4ws0pLTyLL5AcQ0UDxkAQAqoYbh';
+}
+
 let emptyChangesSummary = function(lastSeq) {
     return {
       deleted: [],
@@ -45,44 +50,40 @@ let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload
       });
     }
 };
-  
-let importChangesBatch = function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, source) {
+
+let importChangesBatch = function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch) {
     concurrentDocLimit = concurrentDocLimit || 100;
     changesLimit = changesLimit || 10000;
-    return getSeq(db, source, deployment)
-    .then(function(seq) {
-        log.debug('Downloading CouchDB changes feed from ' + seq);
-        return couchdb.changes({ limit: changesLimit, since: seq });
-    })
-    .then(function(changes) {
-        log.info('There are ' + changes.results.length + ' changes to process');
-
-        if (!changes.results.length) {
-          return emptyChangesSummary(changes.last_seq);
-        }
-        else{
-              docsToDownload = _.uniq(changes.results, _.property('id'));
-  
-          const editedDocIds = _.pluck(docsToDownload, 'id');
-          log.debug('There are ' + docsToDownload.length + ' new / changed documents');
-          return loadAndStoreDocs(apm, couchdb, concurrentDocLimit, docsToDownload, deployment)
-          .then(function() {
-            return {
-              edited: editedDocIds || [],
-              lastSeq: changes.last_seq
-            };
-          });
-        }
-    });
+    const seq = getSeq(elasticsearch, deployment)
+    log.debug('Downloading CouchDB changes feed from ' + seq);
+    console.log(couchdb.changes({limit: 5}));
+    let changes = couchdb.changes({ limit: changesLimit, since: seq });
+    log.info('There are ' + changes.results.length + ' changes to process');
+    if (!changes.results.length) {
+      return emptyChangesSummary(changes.last_seq);
+    }
+    else{
+          docsToDownload = _.uniq(changes.results, _.property('id'));
+      const editedDocIds = _.pluck(docsToDownload, 'id');
+      log.debug('There are ' + docsToDownload.length + ' new / changed documents');
+      return loadAndStoreDocs(apm, couchdb, concurrentDocLimit, docsToDownload, deployment)
+      .then(function() {
+        return {
+          edited: editedDocIds || [],
+          lastSeq: changes.last_seq
+        };
+      });
+    }
 };
 
-module.exports = function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, source) {
+module.exports = function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch) {
   let importLoop = function(changesSummary) {
     log.debug('Performing an import batch of up to ' + changesLimit + ' changes');
   
-    return importChangesBatch(apm, couchdb, concurrentDocLimit, changesLimit, deployment, source)
+    return importChangesBatch(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch)
     .then(function(changes) {
-      return storeSeq(db, changes.lastSeq, source).then(function() {
+      //return storeSeq(db, changes.lastSeq, source)
+      //seq.then(function() {
         if (changesCount(changes) > 0) {
           log.debug('Batch completed with ' + changesCount(changes) + ' changes');
   
@@ -100,7 +101,7 @@ module.exports = function(apm, couchdb, concurrentDocLimit, changesLimit, deploy
           accChanges.lastSeq = changes.lastSeq;
           return accChanges;
         }
-      });
+      //});
     });
   }
 

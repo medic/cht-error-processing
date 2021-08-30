@@ -1,6 +1,6 @@
 const main = async () => {
   const args = require('./cli');
-  let couchdb = require('./db')(args.couchdbUrl);
+  let couchdb = require('./db')('https://admin:password@pih-malawi.dev.medicmobile.org/medic-users-meta');
   let apm = require('elastic-apm-node').start({
       // Override service name from package.json
       // Allowed characters: a-z, A-Z, 0-9, -, _, and space
@@ -15,7 +15,7 @@ const main = async () => {
       // Set custom APM Server URL (default: http://localhost:8200)
       serverUrl: args.apmUrl,
   })
-  let couch2pg = require('./lib/importer');
+  let couch2pg = require('./importer');
   
   couch2pg(
       apm,
