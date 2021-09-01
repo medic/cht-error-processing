@@ -1,7 +1,10 @@
-var elasticsearch=require('elasticsearch');
+let connection = function(){
+  const { Client } = require('@elastic/elasticsearch')
+  //can set auth inside object
+  const client = new Client({
+    node: 'https://localhost:9200'
+  })
+  return client
+}
 
-var client = new elasticsearch.Client( {  
-  hosts: 'http://localhost:9200'
-});
-
-module.exports = client;
+module.exports = connection;

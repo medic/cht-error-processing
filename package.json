@@ -9,15 +9,16 @@
   "author": "Ethan",
   "license": "ISC",
   "dependencies": {
+    "@elastic/elasticsearch": "^7.14.1",
     "chai-http": "^4.3.0",
     "commander": "^8.1.0",
     "elastic-apm-node": "^3.20.0",
-    "elasticsearch": "^16.7.2",
     "get-json": "^1.0.1",
     "loglevel": "^1.7.1",
     "pg": "^8.7.1",
     "pouchdb-adapter-http": "^7.2.2",
-    "pouchdb-core": "^7.2.2"
+    "pouchdb-core": "^7.2.2",
+    "underscore": "^1.13.1"
   },
   "devDependencies": {
     "chai": "^4.3.4",
