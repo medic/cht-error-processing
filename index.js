@@ -15,16 +15,20 @@ const main = async () => {
       // Set custom APM Server URL (default: http://localhost:8200)
       serverUrl: 'http://localhost:8200',
   })
-  let elastic = require('./connection')();
+    
   let couch2pg = require('./importer');
-  
+
+
+  const { Client } = require('@elastic/elasticsearch')
+  const elasticsearch = new Client({ node: 'http://localhost:9200' })
+
   couch2pg(
       apm,
       couchdb,
       args.couch2pgDocLimit,
       args.couch2pgChangesLimit,
       args.deployment,
-      elastic
+      elasticsearch
   );
 }
 
