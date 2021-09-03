@@ -5,14 +5,16 @@ module.exports = function() {
     program
         .version(require('./package.json').version)
         .arguments('<source>')
-        .option('--doc-limit [value]', 'number of docs to batch')
-        .option('--changes-limit [value]', 'number of changes to batch')
-        .option('--deployment', 'cht deployment', 'no specified deployment')
+        .option('--doc-limit [value]', 'number of docs to batch', 100)
+        .option('--changes-limit [value]', 'number of changes to batch', 10000)
+        .option('--deployment [value]', 'cht deployment', 'no specified deployment')
         .action(function(source) {
         couchdbUrl = source;
         });
 
-        program.parse(process.argv);
+    program.parse(process.argv);
+    console.log(couchdbUrl);
+    console.log(program.opts().deployment);
 
     if (!couchdbUrl) {
         program.help();
@@ -20,10 +22,8 @@ module.exports = function() {
 
     return {
         couchdbUrl: couchdbUrl,
-        elasticUrl: program['elasticsearch'],
-        apmUrl: program['target'],
-        couch2pgDocLimit: program['doc-limit'],
-        couch2pgChangesLimit: program['changes-limit'],
-        deployment: program['deployment']
+        couch2pgDocLimit: program.opts().doc-limit,
+        couch2pgChangesLimit: program.opts().changes-limit,
+        deployment: program.opts().deployment
       };
 };

@@ -134,9 +134,6 @@ let importChangesBatch = function(apm, couchdb, concurrentDocLimit, changesLimit
 
 module.exports = function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch) {
   let importLoop = function(changesSummary) {
-    deployment = 'pih_malawi_test';
-    concurrentDocLimit = concurrentDocLimit || 100;
-    changesLimit = changesLimit || 10000;
     console.log('Performing an import batch of up to ' + changesLimit + ' changes');
   
     return importChangesBatch(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch)
