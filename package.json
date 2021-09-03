@@ -15,6 +15,7 @@
     "elastic-apm-node": "^3.20.0",
     "get-json": "^1.0.1",
     "loglevel": "^1.7.1",
+    "moment": "^2.29.1",
     "pg": "^8.7.1",
     "pouchdb-adapter-http": "^7.2.2",
     "pouchdb-core": "^7.2.2",

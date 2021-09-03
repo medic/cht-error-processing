@@ -1,43 +1,32 @@
 const { parseLog } = require('./parsing');
 let _ = require('underscore');
+const moment = require('moment');
 
-// let makeServer = async function(elasticsearch, deployment){
-//   return await elasticsearch.index({
-//     index: 'sequences',
-//     id: 'deployment',
-//     body: {
-//       seq: '1-g1AAAAF1eJzLYWBg4MhgTmEQTM4vTc5ISXIwNDLXMwBCwxygFFMiQ5L8____szKYExlzgQLsycYmaQbmqdg04DEmSQFIJtmDTEpkwKfOAaQunrC6BJC6eoLq8liAJEMDkAIqnU-M2gUQtfuJUXsAovY-MWofQNSC3JsFANAmZqw',
-//     }
-//   })
-// }
-
-// let getSeq = async function(elasticsearch, deployment){
-//   console.log('here');
-//   const {body} = await elasticsearch.get({
-//     index: 'sequences',
-//     id: 'deployment'
-//   });
-//   console.log('there');
-//   return body._source.seq;
-// }
-
-let getSeq = async function(client, deployment) {
-  'use strict';
-  // await client.index({
-  //   index: 'sequences',
-  //   id: deployment,
-  //   body: {
-  //     seq: 0,
-  //   }
-  // })
-
-  const { body } = await client.get({
+//Creates index of the deployment if it has yet to exist in index sequences of the id deployment.
+let makeIndex = async function(elasticsearch, deployment){
+  return await elasticsearch.index({
     index: 'sequences',
-    id: deployment
+    id: deployment,
+    body: {
+      seq: '0',
+    }
   })
-  return body._source.character;
 }
-
+//Fetches Seq of most recent doc in cahnges feed sent to elastic
+let getSeq = async function(elasticsearch, deployment) {
+  'use strict';
+  try {
+    const { body } = await elasticsearch.get({
+      index: 'sequences',
+      id: deployment
+    })
+    return body._source.seq;
+  } catch (error) {
+    makeIndex(elasticsearch, deployment);
+    return '0';
+  }
+}
+//Stores seq of last pushed doc to elastic
 let storeSeq = async function(elasticsearch, deployment, sequence){
   'use strict';
   return await elasticsearch.update({
@@ -58,10 +47,23 @@ let emptyChangesSummary = function(lastSeq) {
     };
 }
 
+//check of whether changes has anything in it (if not, sync is done)
 let changesCount = function(changes) {
   return ((changes && changes.edited && changes.edited.length)   || 0);
 };
 
+//change date to timestamp in milliseconds for pushing to elastic
+const toTimestamp = (strDate) => {  
+  const dt = moment(strDate).unix();  
+  return dt * 1000;  
+}  
+
+/*
+apm: apm agent 
+couchdb: couch database
+docsToDownload: array of ids of docs to be downloaded
+deployment: string of the deployment of the cht, for metadata to apm
+*/
 let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload, deployment) {
     if (docsToDownload.length) {
       var changeSet = docsToDownload.splice(0, concurrentDocLimit);
@@ -85,7 +87,7 @@ let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload
         .map(parseLog)
         .map((doc)=>{
             const {errorForApm, metadata} = doc;
-            const apmLabels = {labels: {date: metadata.time.substring(0,10), version: metadata.version, url: metadata.url, deployment: deployment}};
+            const apmLabels = {labels: {date: i, version: 'etadata.version', url: 'metadata.url', deployment: 'deployment'}, timestamp: Number(toTimestamp(metadata.date))};
             return {errorForApm, apmLabels};
         })
         .forEach(({errorForApm, apmLabels})=>{
@@ -101,7 +103,6 @@ let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload
 };
 
 let importChangesBatch = function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch) {
-    //makeServer(elasticsearch,deployment);
     getSeq(elasticsearch, deployment).catch(console.log)
     .then(function(seq){
     console.log(seq);
