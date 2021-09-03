@@ -1,6 +1,6 @@
 const main = async () => {
   const args = require('./cli')();
-  let couchdb = require('./db')('https://admin:944f975a36275fb5@pih-malawi.dev.medicmobile.org/medic-users-meta');
+  let couchdb = require('./db')('https://admin:pass@pih-malawi.dev.medicmobile.org/medic-users-meta');
   let feedbackFerry = require('./importer');
   //APM CONFIGURATION
   let apm = require('elastic-apm-node').start({
