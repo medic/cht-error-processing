@@ -1,6 +1,8 @@
 const main = async () => {
-  const args = require('./cli');
+  const args = require('./cli')();
   let couchdb = require('./db')('https://admin:944f975a36275fb5@pih-malawi.dev.medicmobile.org/medic-users-meta');
+  let feedbackFerry = require('./importer');
+  //APM CONFIGURATION
   let apm = require('elastic-apm-node').start({
       // Override service name from package.json
       // Allowed characters: a-z, A-Z, 0-9, -, _, and space
@@ -16,13 +18,12 @@ const main = async () => {
       serverUrl: 'http://localhost:8200',
   })
     
-  let couch2pg = require('./importer');
 
-
+//ELASTICSEARCH NODE CONFIGURATION
   const { Client } = require('@elastic/elasticsearch')
   const elasticsearch = new Client({ node: 'http://localhost:9200' })
 
-  couch2pg(
+  feedbackFerry(
       apm,
       couchdb,
       args.couch2pgDocLimit,

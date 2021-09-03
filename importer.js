@@ -4,6 +4,7 @@ const moment = require('moment');
 
 //Creates index of the deployment if it has yet to exist in index sequences of the id deployment.
 let makeIndex = async function(elasticsearch, deployment){
+  'use strict';
   return await elasticsearch.index({
     index: 'sequences',
     id: deployment,
