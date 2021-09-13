@@ -1,12 +1,12 @@
 const main = async () => {
   const args = require('./cli')();
-  let couchdb = require('./db')('https://admin:pass@pih-malawi.dev.medicmobile.org/medic-users-meta');
+  let couchdb = require('./db')(args.couchdbUrl);
   let feedbackFerry = require('./importer');
   //APM CONFIGURATION
   let apm = require('elastic-apm-node').start({
       // Override service name from package.json
       // Allowed characters: a-z, A-Z, 0-9, -, _, and space
-      serviceName: '',
+      serviceName: 'Test1',
   
       // Use if APM Server requires a token
       secretToken: '',

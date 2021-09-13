@@ -17,6 +17,9 @@ function getMessage(infoSection){
     if (infoKeys.includes('file') && infoKeys.includes('line')){
         stackString += infoSection.file + " AT LINE (" + infoSection.line + ")";
     }
+    if (infoKeys.includes('stack')){
+        stackString = infoSection.stack;
+    }
     return messageForError ? {message: messageForError, stack: stackString} : {message: JSON.stringify(infoSection), stack: JSON.stringify(infoSection)};
 }
 
