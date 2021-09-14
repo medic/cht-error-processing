@@ -103,7 +103,7 @@ let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload
 };
 
 let importChangesBatch = async function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch) {
-  getSeq(elasticsearch, deployment)
+  return getSeq(elasticsearch, deployment)
   .then(function(seq){
     console.log('Downloading CouchDB changes feed from ' + seq);
     let changes = couchdb.changes({ limit: changesLimit, since: seq })
