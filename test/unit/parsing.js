@@ -26,8 +26,8 @@ describe('parsing.js', ()=>{
         describe('accepted input', ()=>{
             const parsedAcceptableError = parsing.parseLog(acceptableError);
             it('should have correct message and stack values in errorLog for accepted input', ()=>{
-                expect(parsedAcceptableError.createdError.message).to.equal("Uncaught Error: Could not resolve 'undefined' from state 'home'");
-                expect(parsedAcceptableError.createdError.stack).to.equal("Uncaught Error: Could not resolve \'undefined\' from state \'home\'\nhttps://muso-mali.app.medicmobile.org/medic/_design/medic/_rewrite/js/inbox.js AT LINE (3)");
+                expect(parsedAcceptableError.errorForApm.message).to.equal("Uncaught Error: Could not resolve 'undefined' from state 'home'");
+                expect(parsedAcceptableError.errorForApm.stack).to.equal("Uncaught Error: Could not resolve \'undefined\' from state \'home\'\nhttps://muso-mali.app.medicmobile.org/medic/_design/medic/_rewrite/js/inbox.js AT LINE (3)");
             })
             it('should have correct metadata info for accepted input', ()=>{
                 expect(parsedAcceptableError.metadata).to.eql({"url": "https://muso-mali.app.medicmobile.org/medic/_design/medic/_rewrite/#/home", "time": "2019-07-22T12:55:29.163Z", "user": {"name": "user", "roles": ["district-manager"]}});
@@ -37,16 +37,10 @@ describe('parsing.js', ()=>{
             const  parsedBadInput = parsing.parseLog(noInfoError);
             let testError = new medicError('no info section on log', 'no info section on log');
             it('should handle an error with no info section', ()=> {
-                expect(parsedBadInput).to.eql({createdError: testError, metadata: {"app": "medic", "url": "https://muso-mali.app.medicmobile.org/medic/_design/medic/_rewrite/#/error/", "time": "2019-07-10T12:38:36.075Z", "user": {"name": "user", "roles": ["chw_uhc"]}, "version": "3.3.0"}});
+                expect(parsedBadInput.errorForApm.message).to.eql(testError.message);
+                expect(parsedBadInput.errorForApm.stack).to.eql(testError.stack);
+                expect(parsedBadInput.metadata).to.eql({app: "medic", url: "https://muso-mali.app.medicmobile.org/medic/_design/medic/_rewrite/#/error/", time: "2019-07-10T12:38:36.075Z", user: {name: "user", roles: ["chw_uhc"]}, version: "3.3.0"});
             })
         })
     })
 });
-
-// describe('index.js', ()=>{
-//     const generalLogs = parsedAcceptableError = parsing.parseLog(acceptableError);
-//     const errorForApm = generalLogs.createdError;
-//     it('should create error with proper stack and message', ()=> {
-//         assert.deepEqual(errorForApm.message, {message: "Uncaught Error: Could not resolve 'undefined' from state 'home'", stack: "Uncaught Error: Could not resolve \'undefined\' from state \'home\'\nhttps://muso-mali.app.medicmobile.org/medic/_design/medic/_rewrite/js/inbox.js AT LINE (3)"});
-//     })
-// });

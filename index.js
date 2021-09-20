@@ -6,7 +6,7 @@ const main = async () => {
   let apm = require('elastic-apm-node').start({
       // Override service name from package.json
       // Allowed characters: a-z, A-Z, 0-9, -, _, and space
-      serviceName: 'Test1',
+      serviceName: 'Cht-error-processing',
   
       // Use if APM Server requires a token
       secretToken: '',
@@ -29,7 +29,8 @@ const main = async () => {
       args.couch2pgDocLimit,
       args.couch2pgChangesLimit,
       args.deployment,
-      elasticsearch
+      elasticsearch,
+      args.fromSeq
   );
 }
 

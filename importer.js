@@ -3,28 +3,31 @@ let _ = require('underscore');
 const moment = require('moment');
 
 //Creates index of the deployment if it has yet to exist in index sequences of the id deployment.
-let makeIndex = async function(elasticsearch, deployment){
+let makeIndex = async function(elasticsearch, deployment, fromSeq){
   'use strict';
   return await elasticsearch.index({
     index: 'sequences',
     id: deployment,
     body: {
-      seq: '0',
+      seq: fromSeq,
     }
   })
 }
 //Fetches Seq of most recent doc in cahnges feed sent to elastic
-let getSeq = async function(elasticsearch, deployment) {
+let getSeq = async function(elasticsearch, deployment, fromSeq) {
   'use strict';
   try {
     const { body } = await elasticsearch.get({
       index: 'sequences',
       id: deployment
+    },
+    {
+      ignore: [404]
     })
     return body._source.seq;
   } catch (error) {
-    makeIndex(elasticsearch, deployment);
-    return '0';
+    makeIndex(elasticsearch, deployment, fromSeq);
+    return fromSeq;
   }
 }
 //Stores seq of last pushed doc to elastic
@@ -97,16 +100,15 @@ let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload
       })
       .then(function() {
             const sequences = _.pluck(changeSet, 'seq');
-            if (sequences.length = concurrentDocLimit) {
-              storeSeq(elasticsearch, deployment, sequences[concurrentDocLimit - 1])
-            }
+            const lastSequence = sequences[sequences.length - 1];
+            console.log('Last seq of this APM set: ', lastSequence);
             return loadAndStoreDocs(apm, couchdb, concurrentDocLimit, docsToDownload, deployment, elasticsearch);
       });
     }
 };
 
-let importChangesBatch = async function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch) {
-  return getSeq(elasticsearch, deployment)
+let importChangesBatch = async function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch, fromSeq) {
+  return getSeq(elasticsearch, deployment, fromSeq)
   .then(function(seq){
     console.log('Downloading CouchDB changes feed from ' + seq);
     let changes = couchdb.changes({ limit: changesLimit, since: seq })
@@ -130,10 +132,10 @@ let importChangesBatch = async function(apm, couchdb, concurrentDocLimit, change
   })
 };
 
-module.exports = function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch) {
+module.exports = function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch, fromSeq) {
   let importLoop = function(changesSummary) {
     console.log('Performing an import batch of up to ' + changesLimit + ' changes');
-    return importChangesBatch(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch)
+    return importChangesBatch(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch, fromSeq)
     .then(function(changes) {
       storeSeq(elasticsearch, deployment, changes.lastSeq);
       if (changesCount(changes) > 0) {

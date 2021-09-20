@@ -1,6 +1,6 @@
 FROM node:10.19.0
 
-WORKDIR /usr/src/cht-error-processing
+WORKDIR /usr/src/app
 
 COPY package*.json ./
 
@@ -8,11 +8,14 @@ RUN npm install
 
 COPY . .
 
-FROM alpine
+ENV COUCHURL= \
+    doclimit=100 \
+    changeslimit=1000\
+    deployment= \
+    fromSeq=now
 
-COPY --from=library/docker:latest /usr/local/bin/docker /usr/bin/docker
-COPY --from=docker/compose:latest /usr/local/bin/docker-compose /usr/bin/docker-compose
+EXPOSE 8200
 
-RUN docker-compose up
+EXPOSE 9200
 
-CMD [ "node", "index.js" ]
+CMD [ "node", "index.js", $COUCHURL, "--doclimit" + $doclimit, "--changeslimit" + $changeslimit, "--deployment" + $deployment, "--fromSeq" + $fromseq ]

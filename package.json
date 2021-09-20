@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "npm run unit-test && npm run int-test",
+    "unit-test": "mocha test/unit",
+    "int-test": "mocha test/int"
   },
   "author": "Ethan",
   "license": "ISC",
