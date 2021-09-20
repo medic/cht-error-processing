@@ -29,7 +29,6 @@ let getSeq = async function(elasticsearch, deployment) {
 }
 //Stores seq of last pushed doc to elastic
 let storeSeq = async function(elasticsearch, deployment, sequence){
-  console.log('Im here!')
   'use strict';
   return await elasticsearch.update({
     index: 'sequences',
@@ -66,7 +65,7 @@ couchdb: couch database
 docsToDownload: array of ids of docs to be downloaded
 deployment: string of the deployment of the cht, for metadata to apm
 */
-let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload, deployment) {
+let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload, deployment, elasticsearch) {
     console.log('There are ' + docsToDownload.length + ' more docs in this change set');
     if (docsToDownload.length) {
       var changeSet = docsToDownload.splice(0, concurrentDocLimit);
@@ -97,7 +96,11 @@ let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload
         console.log(err);
       })
       .then(function() {
-            return loadAndStoreDocs(apm, couchdb, concurrentDocLimit, docsToDownload, deployment);
+            const sequences = _.pluck(changeSet, 'seq');
+            if (sequences.length = concurrentDocLimit) {
+              storeSeq(elasticsearch, deployment, sequences[concurrentDocLimit - 1])
+            }
+            return loadAndStoreDocs(apm, couchdb, concurrentDocLimit, docsToDownload, deployment, elasticsearch);
       });
     }
 };
@@ -115,7 +118,7 @@ let importChangesBatch = async function(apm, couchdb, concurrentDocLimit, change
       else{
         let docsToDownload = _.uniq(couchDbResult.results, _.property('id'));
         const editedDocIds = _.pluck(docsToDownload, 'id');
-        return loadAndStoreDocs(apm, couchdb, concurrentDocLimit, docsToDownload, deployment)
+        return loadAndStoreDocs(apm, couchdb, concurrentDocLimit, docsToDownload, deployment, elasticsearch)
         .then(function() {
           return {
             edited: editedDocIds || [],
@@ -133,7 +136,6 @@ module.exports = function(apm, couchdb, concurrentDocLimit, changesLimit, deploy
     return importChangesBatch(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch)
     .then(function(changes) {
       storeSeq(elasticsearch, deployment, changes.lastSeq);
-      console.log(changes);
       if (changesCount(changes) > 0) {
         console.log('Batch completed with ' + changesCount(changes) + ' changes');
         return importLoop({
@@ -147,8 +149,8 @@ module.exports = function(apm, couchdb, concurrentDocLimit, changesLimit, deploy
         // couchdb works (if there are absolutely no changes in a batch that's because you already
         // got to the end of all changes last time) but I'm counting that as an implementation
         // detail (eg maybe we change to a filtered changes feed in the future), so let's be sure.
-        accChanges.lastSeq = changes.lastSeq;
-        return accChanges;
+        changesSummary.lastSeq = changes.lastSeq;
+        return changesSummary;
         }
     });
   }
