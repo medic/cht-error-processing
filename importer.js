@@ -13,7 +13,7 @@ let makeIndex = async function(elasticsearch, deployment, fromSeq){
     }
   })
 }
-//Fetches Seq of most recent doc in cahnges feed sent to elastic
+//Fetches Seq of most recent doc in changes feed sent to elastic
 let getSeq = async function(elasticsearch, deployment, fromSeq) {
   'use strict';
   try {
@@ -26,7 +26,7 @@ let getSeq = async function(elasticsearch, deployment, fromSeq) {
     })
     return body._source.seq;
   } catch (error) {
-    makeIndex(elasticsearch, deployment, fromSeq);
+    await makeIndex(elasticsearch, deployment, fromSeq);
     return fromSeq;
   }
 }
@@ -105,6 +105,7 @@ let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload
             return loadAndStoreDocs(apm, couchdb, concurrentDocLimit, docsToDownload, deployment, elasticsearch);
       });
     }
+    return Promise.resolve(emptyChangesSummary());
 };
 
 let importChangesBatch = async function(apm, couchdb, concurrentDocLimit, changesLimit, deployment, elasticsearch, fromSeq) {
@@ -113,7 +114,7 @@ let importChangesBatch = async function(apm, couchdb, concurrentDocLimit, change
     console.log('Downloading CouchDB changes feed from ' + seq);
     let changes = couchdb.changes({ limit: changesLimit, since: seq })
     return changes.then(function(couchDbResult){
-        console.log('There are ' + couchDbResult.results.length + ' changes to process');
+      console.log('There are ' + couchDbResult.results.length + ' changes to process');
       if (!couchDbResult.results.length) {
         return emptyChangesSummary(couchDbResult.last_seq);
       }

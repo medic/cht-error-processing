@@ -23,7 +23,7 @@ const main = async () => {
   const { Client } = require('@elastic/elasticsearch')
   const elasticsearch = new Client({ node: 'http://localhost:9200' })
 
-  feedbackFerry(
+  return feedbackFerry(
       apm,
       couchdb,
       args.couch2pgDocLimit,
@@ -34,4 +34,4 @@ const main = async () => {
   );
 }
 
-main();
+main().then(() => console.log('Import finished.'));
