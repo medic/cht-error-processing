@@ -80,7 +80,7 @@ let loadAndStoreDocs = function(apm, couchdb, concurrentDocLimit, docsToDownload
         return couchDbResult;
       })
       .then(function(couchDbResult) {
-        return couchDbResult.rows.filter(d => d.doc.type == 'feedback');
+        return couchDbResult.rows.filter(d => d.doc && d.doc.type == 'feedback');
       })
       .then(function(rows){
         console.log('Inserting ' + rows.length + ' results into elasticApm');
