@@ -14,7 +14,7 @@
     "@elastic/elasticsearch": "^7.14.1",
     "chai-http": "^4.3.0",
     "commander": "^8.1.0",
-    "elastic-apm-node": "^3.20.0",
+    "elastic-apm-node": "^3.21.1",
     "get-json": "^1.0.1",
     "loglevel": "^1.7.1",
     "moment": "^2.29.1",
